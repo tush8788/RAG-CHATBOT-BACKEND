@@ -8,10 +8,14 @@ interface Config {
     mongodbURL: string,
     googleClientId: string,
     jwtKey: string
-    aiConfig:{
-        apiKey:string,
-        model:string
-        embeddingModel:string
+    aiConfig: {
+        apiKey: string,
+        model: string
+        embeddingModel: string
+    }
+    embeddingConfig: {
+        apikey: string,
+        indexName:string
     }
 }
 
@@ -21,10 +25,14 @@ const config: Config = {
     mongodbURL: env.MONGODB_URL || 'mongodb://localhost/chatapp',
     googleClientId: env.GOOGLE_CLIENT_ID || '',
     jwtKey: env.JWT_KEY || 'djdnsnjhcfjbsjc',
-    aiConfig:{
+    aiConfig: {
         apiKey: env.GEMINI_API_KEY || "",
         model: env.MODEL || "gemini-2.5-flash",
         embeddingModel: 'gemini-embedding-001',
+    },
+    embeddingConfig: {
+        apikey: env.PINECONE_API_KEY || '',
+        indexName: env.INDEX_NAME || 'article-content'
     }
 };
 

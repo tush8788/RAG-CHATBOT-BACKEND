@@ -1,6 +1,19 @@
 import AiService from "../services/Ai.service"
 
-const sendMessage = async(req: any, res: any) => {
+const fetchLetestNews = async (req: any, res: any) => {
+    try {
+        let resp = await AiService.fetchLetestNews();
+        return res.status(200).json({
+            resp
+        })
+    } catch (err: any) {
+        return res.status(500).json({
+            message: err?.message
+        })
+    }
+}
+
+const sendMessage = async (req: any, res: any) => {
     try {
 
         let resp = await AiService.sendMessage(req.body.message)
@@ -9,12 +22,13 @@ const sendMessage = async(req: any, res: any) => {
         })
 
     } catch (err: any) {
-        res.status(500).message({
-            message: err.message
+        return res.status(500).json({
+            message: err?.message
         })
     }
 }
 
 export default {
-    sendMessage
+    sendMessage,
+    fetchLetestNews
 }

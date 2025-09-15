@@ -14,7 +14,7 @@ class GeminiAI {
     async senMessage(message: string) {
         const response = await this.ai.models.generateContent({
             model: model,
-            contents: message || "Explain how AI works in a few words",
+            contents:message,
         });
         return response;
     }
