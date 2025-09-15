@@ -11,6 +11,7 @@ interface Config {
     aiConfig:{
         apiKey:string,
         model:string
+        embeddingModel:string
     }
 }
 
@@ -22,7 +23,8 @@ const config: Config = {
     jwtKey: env.JWT_KEY || 'djdnsnjhcfjbsjc',
     aiConfig:{
         apiKey: env.GEMINI_API_KEY || "",
-        model: env.MODEL || "gemini-2.5-flash"
+        model: env.MODEL || "gemini-2.5-flash",
+        embeddingModel: 'gemini-embedding-001',
     }
 };
 
