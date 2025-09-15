@@ -1,8 +1,11 @@
 import express from 'express'
 import config from './config';
 import indexRouter from './routes/index'
+import bodyParser from 'body-parser';
 
 const app = express();
+
+app.use(bodyParser.json({}))
 
 app.use('/api',indexRouter)
 

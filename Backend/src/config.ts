@@ -8,6 +8,10 @@ interface Config {
     mongodbURL: string,
     googleClientId: string,
     jwtKey: string
+    aiConfig:{
+        apiKey:string,
+        model:string
+    }
 }
 
 const config: Config = {
@@ -15,7 +19,11 @@ const config: Config = {
     nodeEnv: env.NODE_ENV || 'development',
     mongodbURL: env.MONGODB_URL || 'mongodb://localhost/chatapp',
     googleClientId: env.GOOGLE_CLIENT_ID || '',
-    jwtKey: env.JWT_KEY || 'djdnsnjhcfjbsjc'
+    jwtKey: env.JWT_KEY || 'djdnsnjhcfjbsjc',
+    aiConfig:{
+        apiKey: env.GEMINI_API_KEY || "",
+        model: env.MODEL || "gemini-2.5-flash"
+    }
 };
 
 export default config;
