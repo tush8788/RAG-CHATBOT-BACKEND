@@ -18,12 +18,8 @@ const functionCall = async (LLM: any, toolInfo: { id?: string | null, args?: any
                 //find match in vector db
                 const vector = new VectorDB()
                 let matchingArtical = await vector.findArticle(embeddedMessage?.embeddings[0]?.values)
+                //get match
                 let context = matchingArtical.matches.map(m => (`title: ${m?.metadata?.title} description:${m?.metadata?.description}`)).join("\n\n");
-                const function_response_part = {
-                    id: toolInfo.id,
-                    name: toolInfo.name,
-                    response: { context }
-                }
                 return context
         }
 
@@ -54,8 +50,7 @@ const sendMessage = async (message: string) => {
             if (aiResp.candidates?.length && aiResp.candidates.length > 0) {
                 allMessage.push({ role: aiResp?.candidates[0]?.content?.role || '', parts: aiResp?.candidates[0]?.content?.parts })
             }
-
-            // currently we pass only one tool to ai
+            //handle tool calling
             for (let tool of aiResp.functionCalls) {
                 try {
                     let toolResp = await functionCall(LLM, { id: tool?.id || null, args: tool?.args || null, name: tool?.name || null });
@@ -73,7 +68,6 @@ const sendMessage = async (message: string) => {
                     }
                     allMessage.push({ role: 'user', parts: [{ functionResponse: funcResp }] });
                 }
-
             }
 
         }
