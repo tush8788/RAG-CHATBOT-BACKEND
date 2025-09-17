@@ -2,7 +2,7 @@ import express from 'express'
 import connectDB from '../utils/mongoose'
 import router from '../routes';
 import cors from 'cors'
-// import Authenticate from '../middleware/authenticate';
+import Authenticate from '../middleware/authenticate';
 import { app, server } from './socketServer'
 import bodyParser from 'body-parser';
 import indexRouter from '../routes'
@@ -16,9 +16,9 @@ app.use(cors({
 
 app.use(bodyParser.json({}))
 
-app.use('/api',indexRouter)
+app.use(Authenticate);
 
-// app.use(Authenticate);
+app.use('/api',indexRouter)
 
 //api
 app.use('/api', router)
