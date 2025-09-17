@@ -1,8 +1,8 @@
-import { GeminiAI } from "../uitils/GeminiAi";
-import fetchNews from "../uitils/FetchNews";
-import { VectorDB } from "../uitils/VectorDB";
-import { ToolNameType } from "../uitils/AiTools";
-import RedisService from "../uitils/RedisService";
+import { GeminiAI } from "../utils/GeminiAi";
+import fetchNews from "../utils/FetchNews";
+import { VectorDB } from "../utils/VectorDB";
+import { ToolNameType } from "../utils/AiTools";
+import RedisService from "../utils/RedisService";
 
 type AllMessageType = {
     role: string
