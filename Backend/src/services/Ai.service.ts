@@ -118,8 +118,20 @@ const getChatHistory = async (chatKey: string) => {
     }
 }
 
+const clearChatHistory = async (chatKey:any) => {
+    try {
+        await RedisService.clearChat(chatKey);
+        return {
+            messgae:'success'
+        }
+    } catch (err) {
+        throw err;
+    }
+}
+
 export default {
     sendMessage,
     fetchLetestNews,
-    getChatHistory
+    getChatHistory,
+    clearChatHistory
 }

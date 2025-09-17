@@ -28,7 +28,22 @@ const sendMessage = async (req: any, res: any) => {
     }
 }
 
+const clearChatHistory = async (req: any, res: any) => {
+    try {
+        let resp = await AiService.clearChatHistory(req.headers['_user'].id)
+        return res.status(200).json({
+            resp,
+            status:true
+        })
+    } catch (err: any) {
+        return res.status(500).json({
+            message: err?.message
+        })
+    }
+}
+
 export default {
     sendMessage,
-    fetchLetestNews
+    fetchLetestNews,
+    clearChatHistory
 }

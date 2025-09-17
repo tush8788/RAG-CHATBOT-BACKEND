@@ -10,14 +10,14 @@ let whileListUrls = [
 
 const Authenticate = async (req:any,res:Response,next:NextFunction) => {
     try{
-        console.log("req.url ",req.url)
         if(!whileListUrls.includes(req.url)){
             let token = req.headers['x-rag-chatbot-token'] || '';
             if(isEmpty(token)) throw new Error("Token not found");
             let userInfo:any = jwt.verifyJwtToken(String(token))
-            userInfo = UserModel.getUserFromId(userInfo?.id)
+            userInfo = await UserModel.getUserFromId(userInfo?.id)
             if(isEmpty(userInfo)) throw new Error()
             req.headers['_user'] = { id: userInfo.id };
+            next()
         }else{
             next();
         }
