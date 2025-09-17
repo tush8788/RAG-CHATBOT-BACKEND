@@ -15,7 +15,13 @@ interface Config {
     }
     embeddingConfig: {
         apikey: string,
-        indexName:string
+        indexName: string
+    }
+    redis: {
+        username: string
+        password: string
+        host: string
+        redisPort: number
     }
 }
 
@@ -27,12 +33,18 @@ const config: Config = {
     jwtKey: env.JWT_KEY || 'djdnsnjhcfjbsjc',
     aiConfig: {
         apiKey: env.GEMINI_API_KEY || "",
-        model: env.MODEL || "gemini-2.5-pro",
+        model: env.MODEL || "gemini-2.5-flash",
         embeddingModel: 'gemini-embedding-001',
     },
     embeddingConfig: {
         apikey: env.PINECONE_API_KEY || '',
         indexName: env.INDEX_NAME || 'article-content'
+    },
+    redis: {
+        username: env.REDIS_USERNAME || '',
+        password: env.REDIS_PASSWORD || '',
+        host: env.REDIS_HOST || '',
+        redisPort: Number(env.REDIS_PORT) || 13814
     }
 };
 

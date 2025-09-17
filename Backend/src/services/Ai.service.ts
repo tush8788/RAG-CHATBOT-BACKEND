@@ -2,7 +2,7 @@ import { GeminiAI } from "../uitils/GeminiAi";
 import fetchNews from "../uitils/FetchNews";
 import { VectorDB } from "../uitils/VectorDB";
 import { ToolNameType } from "../uitils/AiTools";
-import { GoogleGenAI } from "@google/genai";
+import RedisService from "../uitils/RedisService";
 
 type AllMessageType = {
     role: string
@@ -31,17 +31,27 @@ const functionCall = async (LLM: any, toolInfo: { id?: string | null, args?: any
 
 const sendMessage = async (message: string) => {
     try {
+        let chatKey = 'chat-1344';
+        let allMessages: AllMessageType[] = await RedisService.getMessages(chatKey);
+        console.log("allMessages ",allMessages)
         const LLM = new GeminiAI()
+        let userMessage = {
+            role: 'user',
+            parts: [{ text: message }]
+        }
         const allMessage: AllMessageType[] = [
-            {
-                role: 'user',
-                parts: [{ text: message }]
-            }
+            ...allMessages,
+            userMessage
         ];
+        //store user message in redis
+        await RedisService.saveMessage(chatKey,userMessage);
+        
         let isBuilding = true;
         while (isBuilding) {
             let aiResp = await LLM.senMessage(allMessage);
             if (!aiResp.functionCalls?.length || aiResp.functionCalls.length < 1) {
+                //store user message in redis
+                await RedisService.saveMessage(chatKey,{role: 'model',parts: [{ text: aiResp.text }]});
                 //not need to make isBuilding false
                 isBuilding = false
                 return aiResp.text
