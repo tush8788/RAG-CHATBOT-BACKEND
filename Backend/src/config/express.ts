@@ -2,7 +2,7 @@ import express from 'express'
 import connectDB from '../utils/mongoose'
 import router from '../routes';
 import cors from 'cors'
-// import Authenticate from '../middleware/Authenticate';
+// import Authenticate from '../middleware/authenticate';
 import { app, server } from './socketServer'
 import bodyParser from 'body-parser';
 import indexRouter from '../routes'

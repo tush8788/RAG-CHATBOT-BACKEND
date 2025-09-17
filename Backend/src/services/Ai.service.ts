@@ -29,11 +29,10 @@ const functionCall = async (LLM: any, toolInfo: { id?: string | null, args?: any
     }
 }
 
-const sendMessage = async (message: string,chatKey:string) => {
+const sendMessage = async (message: string, chatKey: string) => {
     try {
         // await RedisService.clearChat(chatKey);
         let allMessages: AllMessageType[] = await RedisService.getMessages(chatKey);
-        console.log("allMessages ",allMessages)
         const LLM = new GeminiAI()
         let userMessage = {
             role: 'user',
@@ -44,14 +43,14 @@ const sendMessage = async (message: string,chatKey:string) => {
             userMessage
         ];
         //store user message in redis
-        await RedisService.saveMessage(chatKey,userMessage);
-        
+        await RedisService.saveMessage(chatKey, userMessage);
+
         let isBuilding = true;
         while (isBuilding) {
             let aiResp = await LLM.senMessage(allMessage);
             if (!aiResp.functionCalls?.length || aiResp.functionCalls.length < 1) {
                 //store user message in redis
-                await RedisService.saveMessage(chatKey,{role: 'model',parts: [{ text: aiResp.text }]});
+                await RedisService.saveMessage(chatKey, { role: 'model', parts: [{ text: aiResp.text }] });
                 //not need to make isBuilding false
                 isBuilding = false
                 return aiResp.text
@@ -98,7 +97,29 @@ const fetchLetestNews = async () => {
     }
 }
 
+const getChatHistory = async (chatKey: string) => {
+    try {
+        let allMessages: AllMessageType[] = await RedisService.getMessages(chatKey);
+        let allM = []
+        if (allMessages.length > 0) {
+            allM = allMessages.map((elem) => {
+                return {
+                    role: elem.role,
+                    text: elem?.parts[0]?.text
+                }
+            })
+        }else{
+            allM = [{role:'model',text:"Hello! I'm your AI assistant. How can I help you today?"}]
+        }
+        return allM
+    } catch (err) {
+        console.log(err)
+        return []
+    }
+}
+
 export default {
     sendMessage,
-    fetchLetestNews
+    fetchLetestNews,
+    getChatHistory
 }
