@@ -16,7 +16,7 @@ const fetchLetestNews = async (req: any, res: any) => {
 const sendMessage = async (req: any, res: any) => {
     try {
 
-        let resp = await AiService.sendMessage(req.body.message)
+        let resp = await AiService.sendMessage(req.body.message,req.body.chatKey)
         return res.status(200).json({
             resp
         })

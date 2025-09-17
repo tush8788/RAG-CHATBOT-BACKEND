@@ -29,9 +29,9 @@ const functionCall = async (LLM: any, toolInfo: { id?: string | null, args?: any
     }
 }
 
-const sendMessage = async (message: string) => {
+const sendMessage = async (message: string,chatKey:string) => {
     try {
-        let chatKey = 'chat-1344';
+        // await RedisService.clearChat(chatKey);
         let allMessages: AllMessageType[] = await RedisService.getMessages(chatKey);
         console.log("allMessages ",allMessages)
         const LLM = new GeminiAI()
