@@ -1,4 +1,3 @@
-import { createClient, RedisClientType } from 'redis'
 import Redis from 'ioredis';
 import config from '../config'
 
