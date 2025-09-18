@@ -2,7 +2,7 @@ import axios from "axios"
 import { GeminiAI } from "./GeminiAi";
 import { VectorDB } from "./VectorDB";
 
-let newsUrls: string[] = ['https://rss.app/feeds/v1.1/tD7QLR0P0DzlFRvJ.json']
+let newsUrls: string[] = ['https://rss.app/feeds/v1.1/tD7QLR0P0DzlFRvJ.json','https://rss.app/feeds/v1.1/Gkb4mSsF1VUQYbbm.json','https://rss.app/feeds/v1.1/tLp8ZixTWXbToF1k.json','https://rss.app/feeds/v1.1/t9mmoIk4Ofix4tHQ.json','https://rss.app/feeds/v1.1/burb51p0ePCf3hsZ.json']
 
 const fetchNews = async () => {
     try {
