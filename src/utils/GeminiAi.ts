@@ -1,6 +1,7 @@
-import { GoogleGenAI } from '@google/genai'
+import { GoogleGenAI, Type } from '@google/genai'
 import config from '../config';
 import { searchInVector } from './AiTools';
+import { isEmpty } from 'lodash';
 
 
 const { apiKey, model, embeddingModel } = config.aiConfig
@@ -21,11 +22,48 @@ class GeminiAI {
     }
 
     //send message
-    async senMessage(message: any) {
+    async senMessage(message: any, type: 'fecthNews' | 'chat') {
+        let config = {}
+        switch (type) {
+            case 'fecthNews':
+                config = {
+                    tools: [
+                        {
+                            urlContext: {}
+                        }
+                    ]
+                }
+            break;
+            case 'chat':
+                config =  this.getAiToolConfig()
+                break;
+        }
+
+
         const response = await this.ai.models.generateContent({
             model: model,
             contents: message,
-            config:this.getAiToolConfig()
+            ...(!isEmpty(config) && {config: config})
+
+            // ...(type == 'fecthNews' ?
+            //     {
+            //         config: {
+            //             responseJsonSchema: {
+            //                 type: Type.OBJECT,
+            //                 properties: {
+            //                     title: {
+            //                         type: Type.STRING,
+            //                     },
+            //                     description:{
+            //                         type:Type.STRING
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     } :
+            //     {
+            //         config: this.getAiToolConfig()
+            //     })
         });
         return response;
     }

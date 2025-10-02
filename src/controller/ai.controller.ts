@@ -2,7 +2,7 @@ import AiService from "../services/Ai.service"
 
 const fetchLetestNews = async (req: any, res: any) => {
     try {
-        let resp = await AiService.fetchLetestNews();
+        let resp = await AiService.fetchLetestNews(req.body.url,req.headers['_user']['id']);
         return res.status(200).json({
             resp
         })

@@ -31,7 +31,7 @@ class VectorDB {
         // })
     }
 
-    async upsertInVector(id: string, embedding: any[], metaData: { title: string, description: string }) {
+    async upsertInVector(id: string, embedding: any[], metaData: { data: string,url:string,chatId:string,userId:string }) {
         const index = this.pc.index(indexName);
         await index.upsert([{
             id: id,

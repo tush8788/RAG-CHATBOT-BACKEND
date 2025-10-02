@@ -3,7 +3,7 @@ import fetchNews from "../utils/FetchNews";
 import { VectorDB } from "../utils/VectorDB";
 import { ToolNameType } from "../utils/AiTools";
 import RedisService from "../utils/RedisService";
-
+import chatModel from "../models/chat.model";
 type AllMessageType = {
     role: string
     parts: any
@@ -47,7 +47,7 @@ const sendMessage = async (message: string, chatKey: string) => {
 
         let isBuilding = true;
         while (isBuilding) {
-            let aiResp = await LLM.senMessage(allMessage);
+            let aiResp = await LLM.senMessage(allMessage,'chat');
             if (!aiResp.functionCalls?.length || aiResp.functionCalls.length < 1) {
                 //store user message in redis
                 await RedisService.saveMessage(chatKey, { role: 'model', parts: [{ text: aiResp.text }] });
@@ -86,13 +86,29 @@ const sendMessage = async (message: string, chatKey: string) => {
     }
 }
 
-const fetchLetestNews = async () => {
+const fetchLetestNews = async (url: string, userId: string) => {
     try {
-        await fetchNews();
+        let chat = await chatModel.createChat(userId);
+        let resp = await fetchNews(url, chat.id, userId);
+        console.log("resp ",resp)
+        const LLM = new GeminiAI()
+        let userMessage = {
+            role: 'user',
+            parts: [{ text: `give me an summery of this : ${resp}` }]
+        }
+        let aiResp = await LLM.senMessage(userMessage,'chat');
+        // console.log("aiResp ",aiResp)
+        let message = { role: 'model', parts: [{ text: aiResp.text }]};
+        //store user message in redis
+        await RedisService.saveMessage(chat.id, message);
+        // store in db
+        let updatedChat = await chatModel.updateChat(chat.id,'title12',{ role:message.role,text:message.parts[0]?.text});
+        // return aiResp.text
         return {
-            message: "done"
+            return: updatedChat || chat
         }
     } catch (err) {
+        console.log("err", err)
         throw err
     }
 }
@@ -108,8 +124,8 @@ const getChatHistory = async (chatKey: string) => {
                     text: elem?.parts[0]?.text
                 }
             })
-        }else{
-            allM = [{role:'model',text:"Hello! I'm your AI assistant. How can I help you today?"}]
+        } else {
+            allM = [{ role: 'model', text: "Hello! I'm your AI assistant. How can I help you today?" }]
         }
         return allM
     } catch (err) {
@@ -118,11 +134,11 @@ const getChatHistory = async (chatKey: string) => {
     }
 }
 
-const clearChatHistory = async (chatKey:any) => {
+const clearChatHistory = async (chatKey: any) => {
     try {
         await RedisService.clearChat(chatKey);
         return {
-            messgae:'success'
+            messgae: 'success'
         }
     } catch (err) {
         throw err;
