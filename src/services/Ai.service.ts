@@ -47,7 +47,7 @@ const sendMessage = async (message: string, chatKey: string) => {
 
         let isBuilding = true;
         while (isBuilding) {
-            let aiResp = await LLM.senMessage(allMessage,'chat');
+            let aiResp = await LLM.senMessage(allMessage, 'chat');
             if (!aiResp.functionCalls?.length || aiResp.functionCalls.length < 1) {
                 //store user message in redis
                 await RedisService.saveMessage(chatKey, { role: 'model', parts: [{ text: aiResp.text }] });
@@ -90,22 +90,23 @@ const fetchLetestNews = async (url: string, userId: string) => {
     try {
         let chat = await chatModel.createChat(userId);
         let resp = await fetchNews(url, chat.id, userId);
-        console.log("resp ",resp)
+        console.log("resp ", resp)
         const LLM = new GeminiAI()
         let userMessage = {
             role: 'user',
             parts: [{ text: `give me an summery of this : ${resp}` }]
         }
-        let aiResp = await LLM.senMessage(userMessage,'chat');
+        let aiResp = await LLM.senMessage(userMessage, 'chat');
         // console.log("aiResp ",aiResp)
-        let message = { role: 'model', parts: [{ text: aiResp.text }]};
+        let message = { role: 'model', parts: [{ text: aiResp.text }] };
         //store user message in redis
         await RedisService.saveMessage(chat.id, message);
         // store in db
-        let updatedChat = await chatModel.updateChat(chat.id,'title12',{ role:message.role,text:message.parts[0]?.text});
+        let updatedChat = await chatModel.updateChat(chat.id, 'title12', { role: message.role, text: message.parts[0]?.text });
         // return aiResp.text
         return {
-            return: updatedChat || chat
+            chatId:chat.id,
+            title: 'title12'
         }
     } catch (err) {
         console.log("err", err)
@@ -145,9 +146,20 @@ const clearChatHistory = async (chatKey: any) => {
     }
 }
 
+const getChatList = async (userId: string) => {
+    try {
+        let allChats = await chatModel.getAllChats(userId);
+        return allChats.map((chat)=>({chatId:chat.id,title:chat?.title || 'title'}))
+    } catch (err) {
+        console.log("err", err);
+        throw err;
+    }
+}
+
 export default {
     sendMessage,
     fetchLetestNews,
     getChatHistory,
-    clearChatHistory
+    clearChatHistory,
+    getChatList
 }

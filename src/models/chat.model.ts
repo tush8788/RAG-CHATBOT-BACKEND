@@ -8,7 +8,12 @@ const updateChat = async (chatId:string,title:string,chatHistory:any) => {
     return ChatShema.findByIdAndUpdate(chatId,{title: title, $push: { history: chatHistory} },{ new: true })
 }
 
+const getAllChats = async (userId:string) =>{
+    return ChatShema.find({user:userId});
+}
+
 export default {
     createChat,
-    updateChat
+    updateChat,
+    getAllChats
 }
