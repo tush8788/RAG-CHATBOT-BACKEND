@@ -57,9 +57,24 @@ const fetchAllChats = async (req:any, res:any) => {
     }
 }
 
+const deleteChat = async (req:any, res:any) => {
+    try {
+        let resp = await AiService.deleteChat(req.body.chatId,req.headers['_user'].id)
+        return res.status(200).json({
+            results:resp,
+            status: true
+        })
+    } catch (err: any) {
+        return res.status(500).json({
+            message: err?.message
+        })
+    }
+} 
+
 export default {
     sendMessage,
     fetchLetestNews,
     clearChatHistory,
-    fetchAllChats
+    fetchAllChats,
+    deleteChat
 }

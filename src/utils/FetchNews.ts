@@ -45,31 +45,11 @@ const splitInChunk = async (messageObj:any) => {
 
 const fetchNews = async (url: string, chatId: string, userId: string) => {
     try {
-        // "content": "You are a web content extractor and summarizer. Given a URL, you fetch the page, parse it, and return a structured response with a header (title) and a full description (main content). If any part is missing, note it. Always output in JSON format: { \"header\": ..., \"description\": ... }."
-
-        // const { data: html } = await axios.get(url);
-
-        // // 2. Extract <body> text
-        // const $ = cheerio.load(html);
-        // const bodyText = $("body").text().replace(/\s+/g, " ").trim();
-        // console.log("bodyText ", bodyText)
-
-        // let systemPrompt = [
-        //     {
-        //         role: "user",
-        //         parts: [{
-        //             text: `
-        //             You are a web content extractor. Always return JSON with fields: { "title": ..., "description": ... }.
-        //             Task: Here is the HTML body text from a webpage:\n\n${bodyText}\n\n. give me the full news so user can chat with them.
-        //             ⚠️ Important: Return ONLY valid JSON. Do not include backticks, markdown, or extra text.`
-        //         }]
-        //     }
-        // ]
         let systemPrompt = [
             {
                 role: "user",
                 parts: [{
-                    text: `get full info of this url :\n\n${url}\n\n`
+                    text: `get full info of this url :\n\n${url}\n\n, with all key points don't miss anything and as extra info get me infomation about whose pulisher, author and date of pulish`
                 }]
             }
         ]

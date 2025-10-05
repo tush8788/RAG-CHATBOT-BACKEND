@@ -40,12 +40,20 @@ class VectorDB {
         }])
     }
 
-    async findArticle(embedded: any) {
+    async findArticle(embedded: any,filter?:any) {
         const index = this.pc.index(indexName);
         return await index.query({
             vector: embedded,
             topK: 5,
             includeMetadata: true,
+            ...(filter && {filter:filter})
+        })
+    }
+
+    async deleteVectorRecords(chatId:string){
+        const index = this.pc.index(indexName);
+        await index._deleteMany({
+            chatId: { $eq: chatId},
         })
     }
 }

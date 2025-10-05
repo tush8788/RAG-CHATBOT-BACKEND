@@ -24,14 +24,16 @@ io.on('connection', async (socket: Socket) => {
     try {
         console.log("socket connect ");
         const { _user } = socket.handshake.auth;
-        let allChats = await AiService.getChatHistory(_user.id);
+        const { chatId } = socket.handshake.query
+        let allChats = await AiService.getChatHistory(chatId as string);
+        console.log("chat id",chatId)
         socket.emit('chat_history',allChats);
 
         // socket.emit('ai_message','welcom user');
         
         socket.on('user_message',async (data:{message:string})=>{
             try{
-                let aiResp = await AiService.sendMessage(data.message,_user.id)
+                let aiResp = await AiService.sendMessage(data.message,chatId as string)
                 socket.emit('ai_message',{role:'model',text:aiResp});
             }catch(err:any){
                 socket.emit('ai_message',{role:'model',text:err.message});
