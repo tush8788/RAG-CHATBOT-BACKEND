@@ -104,7 +104,7 @@ const sendMessage = async (message: string, chatId: string) => {
 
 const fetchLetestNews = async (url: string, userId: string) => {
     try {
-        let chat = await chatModel.createChat(userId);
+        let chat = await chatModel.createChat(userId, { url });
         let resp = await fetchNews(url, chat.id, userId);
         console.log("resp ", resp)
         const LLM = new GeminiAI()
@@ -119,10 +119,21 @@ const fetchLetestNews = async (url: string, userId: string) => {
         }
         let titleOfArticle = await LLM.senMessage(articleTitleMessage, 'chat');
         let message = { role: 'model', parts: [{ text: aiResp.text }] };
+
+        let systemPForMarkup = "You are a content-to-markdown converter. Produce a Markmap-compatible Markdown representation of the article text provided below. Requirements: - Return **ONLY valid Markdown** (no explanations, no backticks, no extra text). - Use headings (`#`, `##`, `###`) for the main title and sections. - Convert important paragraphs into bullet points where appropriate. - Keep each bullet short (1–2 sentences). - Preserve and include important links (as inline `[text](url)`). - Do not truncate; include all major sections and key details. Article text:"
+        //get markup
+        let articleMarkupMessage = {
+            role: 'user',
+            parts: [{
+                text: `${systemPForMarkup} ${resp}`
+            }]
+        }
+        let markupArticle = await LLM.senMessage(articleMarkupMessage, 'chat');
+        
         //store user message in redis
         await RedisService.saveMessage(chat.id, message);
         // store in db
-        await chatModel.updateChat(chat.id, { role: message.role, text: message.parts[0]?.text }, titleOfArticle?.text);
+        await chatModel.updateChat(chat.id, { role: message.role, text: message.parts[0]?.text }, titleOfArticle?.text, markupArticle.text);
         // return aiResp.text
         return {
             chatId: chat.id,
@@ -225,9 +236,19 @@ const deleteChat = async (chatId: string, userId: string) => {
         await chatModel.deleteChat(chatId);
         // clear chat form vector
         let resp = await new VectorDB().deleteVectorRecords(chatId);
-        console.log("resp ",resp);
+        console.log("resp ", resp);
     } catch (err) {
         console.log("Error in deleteChat", err);
+        throw err;
+    }
+}
+
+const getMarkup = async (chatId: string, userId: string) => {
+    try {
+        const chat = await chatModel.findChat(chatId);
+        return { markup: chat?.markup || '' }
+    } catch (err) {
+        console.log("Error in getMarkup ", err);
         throw err;
     }
 }
@@ -238,5 +259,6 @@ export default {
     getChatHistory,
     clearChatHistory,
     getChatList,
-    deleteChat
+    deleteChat,
+    getMarkup
 }

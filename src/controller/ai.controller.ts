@@ -4,8 +4,8 @@ const fetchLetestNews = async (req: any, res: any) => {
     try {
         let resp = await AiService.fetchLetestNews(req.body.url, req.headers['_user']['id']);
         return res.status(200).json({
-            results:resp,
-            status:true
+            results: resp,
+            status: true
         })
     } catch (err: any) {
         return res.status(500).json({
@@ -43,11 +43,11 @@ const clearChatHistory = async (req: any, res: any) => {
     }
 }
 
-const fetchAllChats = async (req:any, res:any) => {
+const fetchAllChats = async (req: any, res: any) => {
     try {
         let resp = await AiService.getChatList(req.headers['_user'].id)
         return res.status(200).json({
-            results:resp,
+            results: resp,
             status: true
         })
     } catch (err: any) {
@@ -57,11 +57,11 @@ const fetchAllChats = async (req:any, res:any) => {
     }
 }
 
-const deleteChat = async (req:any, res:any) => {
+const deleteChat = async (req: any, res: any) => {
     try {
-        let resp = await AiService.deleteChat(req.body.chatId,req.headers['_user'].id)
+        let resp = await AiService.deleteChat(req.body.chatId, req.headers['_user'].id)
         return res.status(200).json({
-            results:resp,
+            results: resp,
             status: true
         })
     } catch (err: any) {
@@ -69,12 +69,27 @@ const deleteChat = async (req:any, res:any) => {
             message: err?.message
         })
     }
-} 
+}
+
+const getMarkup = async (req: any, res: any) => {
+    try {
+        let resp = await AiService.getMarkup(req.body.chatId, req.headers['_user'].id)
+        return res.status(200).json({
+            results: resp,
+            status: true
+        })
+    } catch (err:any) {
+        return res.status(500).json({
+            message: err?.message
+        })
+    }
+}
 
 export default {
     sendMessage,
     fetchLetestNews,
     clearChatHistory,
     fetchAllChats,
-    deleteChat
+    deleteChat,
+    getMarkup
 }
