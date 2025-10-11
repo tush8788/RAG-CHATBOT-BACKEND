@@ -12,9 +12,10 @@ const SocketAuthenticate = async (socket: any, next: any) => {
         socket.handshake.auth = { '_user': userInfo }
         next()
     }
-    catch (err) {
-        console.log(err)
-        next(new Error('user not found'))
+    catch (err: any) {
+        err = new Error("not authorized");
+        err.data = { content: "Please retry later", code: 401 };
+        next(err)
     }
 
 }
