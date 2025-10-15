@@ -1,5 +1,6 @@
 import { Embedding, Pinecone } from '@pinecone-database/pinecone'
 import config from '../config';
+import { ChatType } from '../services/Ai.service';
 const { apikey, indexName } = config.embeddingConfig
 
 class VectorDB {
@@ -31,7 +32,7 @@ class VectorDB {
         // })
     }
 
-    async upsertInVector(id: string, embedding: any[], metaData: { data: string,url:string,chatId:string,userId:string }) {
+    async upsertInVector(id: string, embedding: any[], metaData: { data: string,url:string,chatId:string,userId:string,type:ChatType }) {
         const index = this.pc.index(indexName);
         await index.upsert([{
             id: id,

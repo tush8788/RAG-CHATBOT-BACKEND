@@ -1,10 +1,11 @@
 import { GeminiAI } from "../utils/GeminiAi";
-import fetchNews from "../utils/FetchNews";
+import fetchNews from "../utils/CreateFirstChat";
 import { VectorDB } from "../utils/VectorDB";
 import { ToolNameType } from "../utils/AiTools";
 import RedisService from "../utils/RedisService";
 import chatModel from "../models/chat.model";
 import { isEmpty } from "lodash";
+import CreateFirstChat from "../utils/CreateFirstChat";
 type AI_AllMessageType = {
     role: string
     parts: any
@@ -14,6 +15,8 @@ type User_AllMessageType = {
     role: string
     text: string
 }
+
+export type ChatType = 'article' | 'youtube' | 'pdf'
 
 type AllChatType = AI_AllMessageType | User_AllMessageType
 
@@ -102,46 +105,153 @@ const sendMessage = async (message: string, chatId: string) => {
     }
 }
 
-const fetchLetestNews = async (url: string, userId: string) => {
-    try {
-        let chat = await chatModel.createChat(userId, { url });
-        let resp = await fetchNews(url, chat.id, userId);
-        console.log("resp ", resp)
-        const LLM = new GeminiAI()
-        let userMessage = {
-            role: 'user',
-            parts: [{ text: `give me an summery of this : ${resp}` }]
-        }
-        let aiResp = await LLM.senMessage(userMessage, 'chat');
-        let articleTitleMessage = {
-            role: 'user',
-            parts: [{ text: `give me an title of this : ${aiResp.text} article` }]
-        }
-        let titleOfArticle = await LLM.senMessage(articleTitleMessage, 'chat');
-        let message = { role: 'model', parts: [{ text: aiResp.text }] };
+// const fetchLetestNews = async (url: string, userId: string) => {
+//     try {
+//         let chat = await chatModel.createChat(userId, { url });
+//         let resp = await fetchNews(url, chat.id, userId);
+//         console.log("resp ", resp)
+//         const LLM = new GeminiAI()
+//         let userMessage = {
+//             role: 'user',
+//             parts: [{ text: `give me an summery of this : ${resp}` }]
+//         }
+//         let aiResp = await LLM.senMessage(userMessage, 'chat');
+//         let articleTitleMessage = {
+//             role: 'user',
+//             parts: [{ text: `give me an title of this : ${aiResp.text} article` }]
+//         }
+//         let titleOfArticle = await LLM.senMessage(articleTitleMessage, 'chat');
+//         let message = { role: 'model', parts: [{ text: aiResp.text }] };
 
-        let systemPForMarkup = "You are a content-to-markdown converter. Produce a Markmap-compatible Markdown representation of the article text provided below. Requirements: - Return **ONLY valid Markdown** (no explanations, no backticks, no extra text). - Use headings (`#`, `##`, `###`) for the main title and sections. - Convert important paragraphs into bullet points where appropriate. - Keep each bullet short (1–2 sentences). - Preserve and include important links (as inline `[text](url)`). - Do not truncate; include all major sections and key details. Article text:"
-        //get markup
+//         let systemPForMarkup = "You are a content-to-markdown converter. Produce a Markmap-compatible Markdown representation of the article text provided below. Requirements: - Return **ONLY valid Markdown** (no explanations, no backticks, no extra text). - Use headings (`#`, `##`, `###`) for the main title and sections. - Convert important paragraphs into bullet points where appropriate. - Keep each bullet short (1–2 sentences). - Preserve and include important links (as inline `[text](url)`). - Do not truncate; include all major sections and key details. Article text:"
+//         //get markup
+//         let articleMarkupMessage = {
+//             role: 'user',
+//             parts: [{
+//                 text: `${systemPForMarkup} ${resp}`
+//             }]
+//         }
+//         let markupArticle = await LLM.senMessage(articleMarkupMessage, 'chat');
+
+//         //store user message in redis
+//         await RedisService.saveMessage(chat.id, message);
+//         // store in db
+//         await chatModel.updateChat(chat.id, { role: message.role, text: message.parts[0]?.text }, titleOfArticle?.text, markupArticle.text);
+//         // return aiResp.text
+//         return {
+//             chatId: chat.id,
+//             title: titleOfArticle?.text || 'title-1'
+//         }
+//     } catch (err) {
+//         console.log("err", err)
+//         throw err
+//     }
+// }
+
+const createMarkup = async (chatResp: string, type: ChatType) => {
+    try {
+        const LLM = new GeminiAI()
+        let systemPForMarkup = "You are a content-to-markdown converter. Produce a Markmap-compatible Markdown representation of the article text provided below. Requirements: - Return **ONLY valid Markdown** (no explanations, no backticks, no extra text). - Use headings (`#`, `##`, `###`) for the main title and sections. - Convert important paragraphs into bullet points where appropriate. - Keep each bullet short (1–2 sentences). - Preserve and include important links (as inline `[text](url)`). - Do not truncate; include all major sections and key details."
         let articleMarkupMessage = {
             role: 'user',
             parts: [{
-                text: `${systemPForMarkup} ${resp}`
+                text: `${systemPForMarkup} ${type} text: ${chatResp}`
             }]
         }
-        let markupArticle = await LLM.senMessage(articleMarkupMessage, 'chat');
-        
+        let markupInfo = await LLM.senMessage(articleMarkupMessage, 'chat');
+        return {
+            markup: markupInfo.text
+        }
+
+    } catch (err) {
+        console.log("err createMarkup", err);
+        throw err;
+    }
+}
+
+const getTitleAndSummery = async (chatResp: string, type: ChatType) => {
+    try {
+        let summerySystemPrompt = {
+            role: 'user',
+            parts: [{ text: `give me an summery of this : ${chatResp}` }]
+        }
+        let LLM = new GeminiAI();
+        let summeryResp = await LLM.senMessage(summerySystemPrompt, 'chat');
+        let titleSystemPrompt = {
+            role: 'user',
+            parts: [{ text: `give me an title of this : ${summeryResp.text} ${type}` }]
+        }
+        let titleResp = await LLM.senMessage(titleSystemPrompt, 'chat');
+
+        return {
+            title: titleResp.text,
+            summery: summeryResp.text
+        }
+
+    } catch (err) {
+        console.log("err in getTitleAndSummery : ", err)
+        throw err;
+    }
+}
+
+const createNewChat = async (data: { type: ChatType, url?: string, pdf?: any }, userId: string) => {
+    try {
+        let metaData: any;
+        let systemPrompt: any[] = [];
+        switch (data.type) {
+            case 'article':
+                metaData = { type: data?.type, url: data?.url }
+                systemPrompt = [
+                    {
+                        role: "user",
+                        parts: [{
+                            text: `get full info of this url :\n\n${metaData.url}\n\n, with all key points don't miss anything and as extra info get me infomation about whose pulisher, author and date of pulish`
+                        }]
+                    }
+                ]
+                break;
+            case 'youtube':
+                metaData = { type: data?.type, url: data?.url }
+                systemPrompt = [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: `Please give full indetail info the following YouTube video: \n\n${data.url}\n\n, with all key points don't miss anything.` },
+                            // { fileData: { fileUri: `${data.url}` } }
+                        ]
+                    }
+                ]
+                break;
+        }
+        // console.log("Meta", metaData);
+        //create chat id
+        let chat = await chatModel.createChat(userId, metaData);
+        //create first chat
+        let chatResp: string = await CreateFirstChat(data, systemPrompt, chat.id, userId) || '';
+        // console.log("chatResp", chatResp)
+
+        //create basic summery and title
+        let titleAndSummeryInfo = await getTitleAndSummery(chatResp, data.type);
+        // console.log("titleAndSummeryInfo ", titleAndSummeryInfo)
+        //create markup
+        let markupInfo = await createMarkup(chatResp, data.type);
+
+        let message = { role: 'model', parts: [{ text: titleAndSummeryInfo.summery }] };
+
         //store user message in redis
         await RedisService.saveMessage(chat.id, message);
+
         // store in db
-        await chatModel.updateChat(chat.id, { role: message.role, text: message.parts[0]?.text }, titleOfArticle?.text, markupArticle.text);
-        // return aiResp.text
+        await chatModel.updateChat(chat.id, { role: message.role, text: message.parts[0]?.text }, titleAndSummeryInfo.title, markupInfo.markup);
+
         return {
             chatId: chat.id,
-            title: titleOfArticle?.text || 'title-1'
+            title: titleAndSummeryInfo.title || 'title-1'
         }
+
     } catch (err) {
-        console.log("err", err)
-        throw err
+        console.log("err ", err);
+        throw err;
     }
 }
 
@@ -255,7 +365,8 @@ const getMarkup = async (chatId: string, userId: string) => {
 
 export default {
     sendMessage,
-    fetchLetestNews,
+    // fetchLetestNews,
+    createNewChat,
     getChatHistory,
     clearChatHistory,
     getChatList,

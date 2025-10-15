@@ -1,8 +1,23 @@
 import AiService from "../services/Ai.service"
 
-const fetchLetestNews = async (req: any, res: any) => {
+// const fetchLetestNews = async (req: any, res: any) => {
+//     try {
+//         throw new Error("trex")
+//         let resp = await AiService.fetchLetestNews(req.body.url, req.headers['_user']['id']);
+//         return res.status(200).json({
+//             results: resp,
+//             status: true
+//         })
+//     } catch (err: any) {
+//         return res.status(500).json({
+//             message: err?.message
+//         })
+//     }
+// }
+
+const createNewChat = async (req: any, res: any) => {
     try {
-        let resp = await AiService.fetchLetestNews(req.body.url, req.headers['_user']['id']);
+        let resp = await AiService.createNewChat(req.body, req.headers['_user']['id'])
         return res.status(200).json({
             results: resp,
             status: true
@@ -78,7 +93,7 @@ const getMarkup = async (req: any, res: any) => {
             results: resp,
             status: true
         })
-    } catch (err:any) {
+    } catch (err: any) {
         return res.status(500).json({
             message: err?.message
         })
@@ -87,7 +102,8 @@ const getMarkup = async (req: any, res: any) => {
 
 export default {
     sendMessage,
-    fetchLetestNews,
+    // fetchLetestNews,
+    createNewChat,
     clearChatHistory,
     fetchAllChats,
     deleteChat,

@@ -2,6 +2,7 @@ import { GoogleGenAI, Type } from '@google/genai'
 import config from '../config';
 import { searchInVector } from './AiTools';
 import { isEmpty } from 'lodash';
+import { ChatType } from '../services/Ai.service';
 
 
 const { apiKey, model, embeddingModel } = config.aiConfig
@@ -22,10 +23,10 @@ class GeminiAI {
     }
 
     //send message
-    async senMessage(message: any, type: 'fecthNews' | 'chat') {
+    async senMessage(message: any, type: ChatType | 'chat') {
         let config = {}
         switch (type) {
-            case 'fecthNews':
+            case 'article':
                 config = {
                     tools: [
                         {
@@ -34,6 +35,8 @@ class GeminiAI {
                     ]
                 }
             break;
+            case 'youtube':
+                break;
             case 'chat':
                 config =  this.getAiToolConfig()
                 break;
@@ -44,26 +47,6 @@ class GeminiAI {
             model: model,
             contents: message,
             ...(!isEmpty(config) && {config: config})
-
-            // ...(type == 'fecthNews' ?
-            //     {
-            //         config: {
-            //             responseJsonSchema: {
-            //                 type: Type.OBJECT,
-            //                 properties: {
-            //                     title: {
-            //                         type: Type.STRING,
-            //                     },
-            //                     description:{
-            //                         type:Type.STRING
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     } :
-            //     {
-            //         config: this.getAiToolConfig()
-            //     })
         });
         return response;
     }
@@ -81,3 +64,5 @@ class GeminiAI {
 export {
     GeminiAI
 }
+
+// export default new GeminiAI

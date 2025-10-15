@@ -1,6 +1,6 @@
 import ChatShema from "../schema/chat.schema";
 
-const createChat = async (userId: string, metadata: { url: string }) => {
+const createChat = async (userId: string, metadata: { url?: string,type:string }) => {
     return ChatShema.create({ user: userId, metadata: metadata })
 }
 
