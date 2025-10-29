@@ -224,6 +224,20 @@ const createNewChat = async (data: { type: ChatType, url?: string, pdf?: any }, 
                     }
                 ]
                 break;
+            case 'pdf':
+                const LLM = new GeminiAI();
+                let file = await LLM.uploadDocument(data.pdf)
+                metaData = { type: data?.type, }
+                systemPrompt = [
+                    {
+                        role: "user",
+                        parts: [
+                            { text: `Please give full indetail info the following document, with all key points dont miss anything.` },
+                            file
+                        ]
+                    }
+                ]
+                break;
         }
         //create chat id
         let chat = await chatModel.createChat(userId, metaData);

@@ -17,7 +17,7 @@ import AiService from "../services/Ai.service"
 
 const createNewChat = async (req: any, res: any) => {
     try {
-        let resp = await AiService.createNewChat(req.body, req.headers['_user']['id'])
+        let resp = await AiService.createNewChat({...req.body,...(req.body.type == 'pdf' && {pdf:req.files.pdf} )}, req.headers['_user']['id'])
         return res.status(200).json({
             results: resp,
             status: true

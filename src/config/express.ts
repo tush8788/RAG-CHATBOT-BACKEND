@@ -6,6 +6,8 @@ import Authenticate from '../middleware/authenticate';
 import { app, server } from './socketServer'
 import bodyParser from 'body-parser';
 import indexRouter from '../routes'
+import fileUpload from 'express-fileupload';
+
 
 //db connection
 connectDB()
@@ -15,6 +17,8 @@ app.use(cors({
 }))
 
 app.use(bodyParser.json({}))
+
+app.use(fileUpload())
 
 app.use(Authenticate);
 

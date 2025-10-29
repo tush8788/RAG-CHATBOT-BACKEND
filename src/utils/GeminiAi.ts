@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from '@google/genai'
+import { GoogleGenAI, Type, createPartFromUri } from '@google/genai'
 import config from '../config';
 import { searchInVector } from './AiTools';
 import { isEmpty } from 'lodash';
@@ -34,11 +34,11 @@ class GeminiAI {
                         }
                     ]
                 }
-            break;
+                break;
             case 'youtube':
                 break;
             case 'chat':
-                config =  this.getAiToolConfig()
+                config = this.getAiToolConfig()
                 break;
         }
 
@@ -46,7 +46,7 @@ class GeminiAI {
         const response = await this.ai.models.generateContent({
             model: model,
             contents: message,
-            ...(!isEmpty(config) && {config: config})
+            ...(!isEmpty(config) && { config: config })
         });
         return response;
     }
@@ -58,6 +58,42 @@ class GeminiAI {
             contents: items,
         })
         return resp;
+    }
+
+    async uploadDocument(document: any) {
+        try {
+            const blob = new Blob([document.data], { type: document.mimetype });
+
+            const file = await this.ai.files.upload({
+                file: blob,
+                config: {
+                    displayName: document.name,
+                    mimeType: document.mimetype,
+                },
+            });
+
+            let getFile = await this.ai.files.get({ name: file.name || '' });
+            while (getFile.state === 'PROCESSING') {
+                getFile = await this.ai.files.get({ name: file.name || '' });
+                console.log(`current file status: ${getFile.state}`);
+                console.log('File is still processing, retrying in 5 seconds');
+
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 5000);
+                });
+            }
+            if (file.state === 'FAILED') {
+                throw new Error('File processing failed.');
+            }
+            const fileContent = createPartFromUri(file.uri || '', file.mimeType || '');
+            return fileContent;
+        } catch (err) {
+            console.log("err", err);
+            throw err;
+        }
+
+
+
     }
 }
 
