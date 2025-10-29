@@ -218,8 +218,6 @@ const createNewChat = async (data: { type: ChatType, url?: string, pdf?: any }, 
                         parts: [
                             { text: `Please give full indetail info the following YouTube video, with all key points dont miss anything.` },
                             { fileData: { fileUri: `${data.url}` } }
-                            // { text: `Please give full indetail info the following YouTube video: \n\n${data.url}\n\n, with all key points don't miss anything.` },
-                            // { fileData: { fileUri: `${data.url}` } }
                         ]
                     }
                 ]
@@ -243,11 +241,9 @@ const createNewChat = async (data: { type: ChatType, url?: string, pdf?: any }, 
         let chat = await chatModel.createChat(userId, metaData);
         //create first chat
         let chatResp: string = await CreateFirstChat(data, systemPrompt, chat.id, userId) || '';
-        // console.log("chatResp", chatResp)
 
         //create basic summery and title
         let titleAndSummeryInfo = await getTitleAndSummery(chatResp, data.type);
-        // console.log("titleAndSummeryInfo ", titleAndSummeryInfo)
         //create markup
         let markupInfo = await createMarkup(chatResp, data.type);
 
