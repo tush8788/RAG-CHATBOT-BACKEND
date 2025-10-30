@@ -17,7 +17,7 @@ const updateChat = async (chatId: string, chatHistory: any, title?: string, mark
 }
 
 const getAllChats = async (userId: string) => {
-    return ChatShema.find({ user: userId });
+    return ChatShema.find({ user: userId }).sort({ updatedAt: -1 });
 }
 
 const findChat = async (chatId: string) => {

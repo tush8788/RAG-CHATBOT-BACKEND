@@ -6,6 +6,7 @@ import RedisService from "../utils/RedisService";
 import chatModel from "../models/chat.model";
 import { isEmpty } from "lodash";
 import CreateFirstChat from "../utils/CreateFirstChat";
+import {io} from '../config/socketServer' 
 type AI_AllMessageType = {
     role: string
     parts: any
@@ -194,6 +195,47 @@ const getTitleAndSummery = async (chatResp: string, type: ChatType) => {
     }
 }
 
+const chatInit = async (data:{ type: ChatType, url?: string, pdf?: any },chat:any, systemPrompt:any,userId: string) => {
+    try {
+        //create first chat
+        let chatResp: string = await CreateFirstChat(data, systemPrompt, chat.id, userId) || '';
+
+        //create basic summery and title
+        let titleAndSummeryInfo = await getTitleAndSummery(chatResp, data.type);
+
+        let chatObj = {
+            chatId: chat.id,
+            title: titleAndSummeryInfo.title || 'title-1',
+            message:{role:'model',text:titleAndSummeryInfo.summery}
+        }
+
+        io.to(chat.id).emit('first_chat',chatObj)
+
+        //create markup
+        let markupInfo = await createMarkup(chatResp, data.type);
+
+        let message = { role: 'model', parts: [{ text: titleAndSummeryInfo.summery }] };
+
+        //store user message in redis
+        await RedisService.saveMessage(chat.id, message);
+
+        // store in db
+        await chatModel.updateChat(chat.id, { role: message.role, text: message.parts[0]?.text }, titleAndSummeryInfo.title, markupInfo.markup);
+        
+        io.to(chat.id).emit('first_chat_done',{isCreating:true})
+
+        return {
+            chatId: chat.id,
+            title: titleAndSummeryInfo.title || 'title-1'
+        }
+
+    } catch (err:any) {
+        console.log(err);
+        io.to(chat.id).emit('ai_message',{role:'error',text:err?.message})
+        // throw err;
+    }
+}
+
 const createNewChat = async (data: { type: ChatType, url?: string, pdf?: any }, userId: string) => {
     try {
         let metaData: any;
@@ -239,25 +281,12 @@ const createNewChat = async (data: { type: ChatType, url?: string, pdf?: any }, 
         }
         //create chat id
         let chat = await chatModel.createChat(userId, metaData);
-        //create first chat
-        let chatResp: string = await CreateFirstChat(data, systemPrompt, chat.id, userId) || '';
 
-        //create basic summery and title
-        let titleAndSummeryInfo = await getTitleAndSummery(chatResp, data.type);
-        //create markup
-        let markupInfo = await createMarkup(chatResp, data.type);
-
-        let message = { role: 'model', parts: [{ text: titleAndSummeryInfo.summery }] };
-
-        //store user message in redis
-        await RedisService.saveMessage(chat.id, message);
-
-        // store in db
-        await chatModel.updateChat(chat.id, { role: message.role, text: message.parts[0]?.text }, titleAndSummeryInfo.title, markupInfo.markup);
-
+        chatInit(data,chat,systemPrompt,userId);
+        
         return {
             chatId: chat.id,
-            title: titleAndSummeryInfo.title || 'title-1'
+            title: 'Fetching...'
         }
 
     } catch (err) {
