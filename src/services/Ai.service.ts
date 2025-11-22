@@ -180,7 +180,7 @@ const getTitleAndSummery = async (chatResp: string, type: ChatType) => {
         let summeryResp = await LLM.senMessage(summerySystemPrompt, 'chat');
         let titleSystemPrompt = {
             role: 'user',
-            parts: [{ text: `give me an title of this : ${summeryResp.text} ${type}` }]
+            parts: [{ text: `give me an title of this : ${summeryResp.text} ${type} in text only format and give single title` }]
         }
         let titleResp = await LLM.senMessage(titleSystemPrompt, 'chat');
 
@@ -199,6 +199,12 @@ const chatInit = async (data:{ type: ChatType, url?: string, pdf?: any },chat:an
     try {
         //create first chat
         let chatResp: string = await CreateFirstChat(data, systemPrompt, chat.id, userId) || '';
+        let notes = {
+            language:'English',
+            note:chatResp
+        }
+
+        await chatModel.updateChatV1(chat.id,{notes:notes})
 
         //create basic summery and title
         let titleAndSummeryInfo = await getTitleAndSummery(chatResp, data.type);

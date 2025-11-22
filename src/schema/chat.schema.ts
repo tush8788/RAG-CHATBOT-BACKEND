@@ -9,6 +9,12 @@ const historySchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now } // when the message was sent
 });
 
+const notesSchema = new mongoose.Schema({
+    language:{type:String,required:true},
+    note:{type:String,required:true},
+    timestamp: { type: Date, default: Date.now }
+});
+
 const chatSchema = new mongoose.Schema({
     title:{
         type:String,
@@ -22,6 +28,7 @@ const chatSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
+    notes:[notesSchema],
     history: [historySchema],
     model: { type: String, default: config.aiConfig.model },
     metadata: { type: Object },

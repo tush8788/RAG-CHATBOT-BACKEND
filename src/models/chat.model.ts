@@ -4,6 +4,10 @@ const createChat = async (userId: string, metadata: { url?: string,type:string }
     return ChatShema.create({ user: userId, metadata: metadata })
 }
 
+const updateChatV1 = async (chatId:string,data:any) => {
+    return ChatShema.findByIdAndUpdate(chatId,data)
+}
+
 const updateChat = async (chatId: string, chatHistory: any, title?: string, markup?: string) => {
     return ChatShema.findByIdAndUpdate(chatId, {
         ...(title && { title: title }),
@@ -33,5 +37,6 @@ export default {
     updateChat,
     getAllChats,
     findChat,
-    deleteChat
+    deleteChat,
+    updateChatV1
 }
